@@ -14,24 +14,25 @@
             padding: 0;
             overflow: hidden;
         }
-        /* Usa Flexbox para distribuir o espaço verticalmente */
+        /* Usa Flexbox para o layout principal */
         body.panel-page {
             display: flex;
             flex-direction: column;
         }
-        /* Faz o container principal crescer para ocupar todo o espaço disponível */
+        /* Faz o container principal crescer para ocupar todo o espaço */
         body.panel-page .display-container {
             flex-grow: 1;
-            height: auto; /* Remove a altura fixa anterior */
+            height: auto;
             padding: 15px;
             box-sizing: border-box;
-            display: flex; /* Essencial para o alinhamento da grade interna */
+            display: flex;
         }
-        /* Faz a grade se expandir para preencher o container */
+        /* Define a grade com colunas e fileiras de tamanho calculado */
         #student-grid {
             flex-grow: 1;
             grid-template-columns: repeat(5, 1fr) !important;
-            grid-template-rows: repeat(2, 1fr) !important;
+            /* A MUDANÇA PRINCIPAL ESTÁ AQUI: */
+            grid-template-rows: repeat(2, calc((100% - 15px) / 2)) !important;
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
