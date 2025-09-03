@@ -7,30 +7,26 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
-        /* 1. Resets básicos para garantir que a página ocupe toda a tela */
         html, body.panel-page {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            box-sizing: border-box;
+            height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; box-sizing: border-box;
         }
-        /* 2. O container principal deve ter o tamanho total, considerando o padding */
         .display-container {
-            height: 100%;
-            width: 100%;
-            padding: 15px;
-            box-sizing: border-box;
+            height: 100%; width: 100%; padding: 15px; box-sizing: border-box;
         }
-        /* 3. A grade deve ocupar 100% do container e ter o layout exato */
         #student-grid {
-            display: grid;
-            height: 100%;
-            width: 100%;
-            gap: 15px;
+            display: grid; height: 100%; width: 100%; gap: 15px;
             grid-template-columns: repeat(5, 1fr) !important;
-            grid-template-rows: repeat(2, calc((100% - 15px) / 2)) !important;
+            /* Ajuste 1: Cálculo mais preciso da altura das fileiras */
+            grid-template-rows: repeat(2, calc((100% - 45px) / 2)) !important;
+        }
+
+        /* Ajuste 2: Organiza os elementos DENTRO do card */
+        .student-card {
+            justify-content: space-evenly !important; /* Distribui o espaço em vez de centralizar */
+        }
+        .student-photo-large {
+            width: 55% !important; /* Foto um pouco menor para dar espaço ao texto */
+            margin-bottom: 5px !important; /* Margem menor */
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
