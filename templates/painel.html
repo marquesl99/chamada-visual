@@ -7,9 +7,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
+        /* Força a grade de 5 colunas e 2 linhas */
         #student-grid {
             grid-template-columns: repeat(5, 1fr) !important;
             grid-template-rows: repeat(2, 1fr) !important;
+        }
+        /* Reduz a altura do container para caber na tela do TV Box */
+        body.panel-page .display-container {
+            height: 90vh !important;
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
