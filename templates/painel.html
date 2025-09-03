@@ -7,52 +7,41 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
+        /* Garante que a página ocupe 100% da tela sem margens */
+        html, body.panel-page {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        /* Usa Flexbox para distribuir o espaço verticalmente */
+        body.panel-page {
+            display: flex;
+            flex-direction: column;
+        }
+        /* Faz o container principal crescer para ocupar todo o espaço disponível */
+        body.panel-page .display-container {
+            flex-grow: 1;
+            height: auto; /* Remove a altura fixa anterior */
+            padding: 15px;
+            box-sizing: border-box;
+            display: flex; /* Essencial para o alinhamento da grade interna */
+        }
+        /* Faz a grade se expandir para preencher o container */
         #student-grid {
+            flex-grow: 1;
             grid-template-columns: repeat(5, 1fr) !important;
             grid-template-rows: repeat(2, 1fr) !important;
         }
-        body.panel-page .display-container {
-            height: 90vh !important;
-        }
     </style>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        #activation-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(43, 58, 108, 0.95);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            color: white;
-            text-align: center;
-        }
-        #activation-overlay h2 {
-            font-size: 2.5rem;
-        }
-        #activation-overlay p {
-            font-size: 1.2rem;
-            margin-top: 0;
-        }
-        #activate-btn {
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--carbonell-azul-marinho);
-            background-color: var(--carbonell-amarelo);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
+        #activation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(43, 58, 108, 0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; color: white; text-align: center; }
+        #activation-overlay h2 { font-size: 2.5rem; }
+        #activation-overlay p { font-size: 1.2rem; margin-top: 0; }
+        #activate-btn { padding: 15px 30px; font-size: 1.2rem; font-weight: bold; color: var(--carbonell-azul-marinho); background-color: var(--carbonell-amarelo); border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
         .student-card { animation: card-enter 0.5s ease-out forwards; }
         @keyframes card-enter { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
         @keyframes card-exit { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.8); } }
@@ -128,24 +117,12 @@
             catch (error) { console.error("Erro ao deletar aluno: ", error); }
         };
         
-        // ===================================================================
-        // INÍCIO DO NOVO CÓDIGO: FUNÇÃO PARA FORÇAR TELA CHEIA
-        // ===================================================================
-        
         function enterFullScreen() {
-            const elem = document.documentElement; // Pega o elemento raiz da página (<html>)
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen();
-            } else if (elem.webkitRequestFullscreen) { /* Safari, Chrome */
-                elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) { /* IE11 */
-                elem.msRequestFullscreen();
-            }
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) { elem.requestFullscreen(); } 
+            else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); } 
+            else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); }
         }
-
-        // ===================================================================
-        // FIM DO NOVO CÓDIGO
-        // ===================================================================
 
         let wakeLock = null;
 
@@ -162,7 +139,7 @@
         activateBtn.addEventListener('click', () => {
             startMonitoring();
             requestWakeLock();
-            enterFullScreen(); // <-- CHAMADA DA NOVA FUNÇÃO AQUI
+            enterFullScreen();
         });
 
         document.addEventListener('visibilitychange', async () => {
@@ -177,9 +154,7 @@
             const timeoutQuery = query(chamadosCollection, where("timestamp", "<=", firestoreTimestamp));
             try {
                 const timedOutDocs = await getDocs(timeoutQuery);
-                timedOutDocs.forEach(timedOutDoc => {
-                    deleteStudent(timedOutDoc.id);
-                });
+                timedOutDocs.forEach(timedOutDoc => { deleteStudent(timedOutDoc.id); });
             } catch (error) { console.error("Erro ao verificar timeouts: ", error); }
         }, 30000);
     </script>
