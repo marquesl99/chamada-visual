@@ -7,16 +7,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
-        /* Força a grade de 5 colunas e 2 linhas */
         #student-grid {
             grid-template-columns: repeat(5, 1fr) !important;
             grid-template-rows: repeat(2, 1fr) !important;
         }
-        /* Reduz a altura do container para caber na tela do TV Box */
         body.panel-page .display-container {
-            height: 85vh !important;
+            height: 90vh !important;
         }
     </style>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap" rel="stylesheet">
@@ -54,38 +53,10 @@
             cursor: pointer;
             margin-top: 20px;
         }
-
-        /* Animações de entrada e saída dos cards */
-        .student-card {
-            animation: card-enter 0.5s ease-out forwards;
-        }
-
-        @keyframes card-enter {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        @keyframes card-exit {
-            from {
-                opacity: 1;
-                transform: scale(1);
-            }
-            to {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-        }
-
-        .exiting {
-            animation: card-exit 0.5s ease-in forwards;
-        }
-
+        .student-card { animation: card-enter 0.5s ease-out forwards; }
+        @keyframes card-enter { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        @keyframes card-exit { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.8); } }
+        .exiting { animation: card-exit 0.5s ease-in forwards; }
     </style>
 </head>
 <body class="terminal-body panel-page">
@@ -119,56 +90,32 @@
 
         function startMonitoring() {
             activationOverlay.style.display = 'none';
-
-            const emptyStateHTML = `
-                <div class="empty-state">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Colégio Carbonell" class="logo-empty">
-                    <h2>Aguardando chamada...</h2>
-                </div>
-            `;
+            const emptyStateHTML = `<div class="empty-state"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Colégio Carbonell" class="logo-empty"><h2>Aguardando chamada...</h2></div>`;
             studentGrid.innerHTML = emptyStateHTML;
-            
             const q = query(chamadosCollection, orderBy("timestamp", "desc"));
-
             onSnapshot(q, (querySnapshot) => {
-                
                 if (querySnapshot.size > MAX_DISPLAY_COUNT) {
                     const oldestDocs = querySnapshot.docs.slice(MAX_DISPLAY_COUNT);
                     oldestDocs.forEach(doc => deleteStudent(doc.id));
                 }
-
                 querySnapshot.docChanges().forEach((change) => {
                     if (change.type === "added") {
-                        const emptyState = studentGrid.querySelector('.empty-state');
-                        if (emptyState) {
-                            studentGrid.innerHTML = '';
-                        }
-
+                        if (studentGrid.querySelector('.empty-state')) { studentGrid.innerHTML = ''; }
                         const student = change.doc.data();
                         const studentCard = document.createElement('div');
                         studentCard.className = 'student-card';
                         studentCard.id = `card-${change.doc.id}`;
-                        studentCard.innerHTML = `
-                            <img src="${student.fotoUrl}" alt="Foto de ${student.nomeCompleto}" class="student-photo-large">
-                            <div class="student-card-info">
-                                <span class="student-card-name">${student.nomeCompleto}</span>
-                                <span class="student-card-class">${student.turma}</span>
-                            </div>
-                        `;
+                        studentCard.innerHTML = `<img src="${student.fotoUrl}" alt="Foto de ${student.nomeCompleto}" class="student-photo-large"><div class="student-card-info"><span class="student-card-name">${student.nomeCompleto}</span><span class="student-card-class">${student.turma}</span></div>`;
                         studentGrid.insertBefore(studentCard, studentGrid.firstChild);
-                        
                         notificationSound.play().catch(e => console.warn("A reprodução do som falhou.", e));
                     }
-
                     if (change.type === "removed") {
                         const cardToRemove = document.getElementById(`card-${change.doc.id}`);
                         if (cardToRemove) {
                             cardToRemove.classList.add('exiting');
                             cardToRemove.addEventListener('animationend', () => {
                                 cardToRemove.remove();
-                                if (studentGrid.children.length === 0) {
-                                    studentGrid.innerHTML = emptyStateHTML;
-                                }
+                                if (studentGrid.children.length === 0) { studentGrid.innerHTML = emptyStateHTML; }
                             });
                         }
                     }
@@ -177,16 +124,28 @@
         }
 
         const deleteStudent = async (studentId) => {
-            try {
-                await deleteDoc(doc(db, "chamados", studentId));
-            } catch (error) {
-                console.error("Erro ao deletar aluno: ", error);
-            }
+            try { await deleteDoc(doc(db, "chamados", studentId)); } 
+            catch (error) { console.error("Erro ao deletar aluno: ", error); }
         };
         
-        // =======================================================================
-        // --- CÓDIGO PARA MANTER A TELA ATIVA (WAKE LOCK API) ---
-        // =======================================================================
+        // ===================================================================
+        // INÍCIO DO NOVO CÓDIGO: FUNÇÃO PARA FORÇAR TELA CHEIA
+        // ===================================================================
+        
+        function enterFullScreen() {
+            const elem = document.documentElement; // Pega o elemento raiz da página (<html>)
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { /* Safari, Chrome */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+        }
+
+        // ===================================================================
+        // FIM DO NOVO CÓDIGO
+        // ===================================================================
 
         let wakeLock = null;
 
@@ -195,21 +154,15 @@
                 try {
                     wakeLock = await navigator.wakeLock.request('screen');
                     console.log('Wake Lock ativado. A tela não será desligada.');
-                    wakeLock.addEventListener('release', () => {
-                        console.log('Wake Lock foi liberado pelo sistema.');
-                    });
-
-                } catch (err) {
-                    console.error(`${err.name}, ${err.message}`);
-                }
-            } else {
-                console.warn('API Wake Lock não é suportada neste navegador.');
-            }
+                    wakeLock.addEventListener('release', () => { console.log('Wake Lock foi liberado.'); });
+                } catch (err) { console.error(`${err.name}, ${err.message}`); }
+            } else { console.warn('API Wake Lock não é suportada.'); }
         };
 
         activateBtn.addEventListener('click', () => {
             startMonitoring();
             requestWakeLock();
+            enterFullScreen(); // <-- CHAMADA DA NOVA FUNÇÃO AQUI
         });
 
         document.addEventListener('visibilitychange', async () => {
@@ -218,28 +171,17 @@
             }
         });
         
-        // =======================================================================
-        // --- FIM DO CÓDIGO WAKE LOCK ---
-        // =======================================================================
-
-        // Rotina para limpar chamadas antigas
         setInterval(async () => {
-            const now = Date.now();
-            const timeoutThreshold = new Date(now - TIMEOUT_MINUTES * 60 * 1000);
+            const timeoutThreshold = new Date(Date.now() - TIMEOUT_MINUTES * 60 * 1000);
             const firestoreTimestamp = Timestamp.fromDate(timeoutThreshold);
             const timeoutQuery = query(chamadosCollection, where("timestamp", "<=", firestoreTimestamp));
-            
             try {
                 const timedOutDocs = await getDocs(timeoutQuery);
                 timedOutDocs.forEach(timedOutDoc => {
-                    console.log(`Removendo ${timedOutDoc.data().nomeCompleto} por timeout.`);
                     deleteStudent(timedOutDoc.id);
                 });
-            } catch (error) {
-                console.error("Erro ao verificar timeouts: ", error);
-            }
+            } catch (error) { console.error("Erro ao verificar timeouts: ", error); }
         }, 30000);
     </script>
 </body>
 </html>
-
