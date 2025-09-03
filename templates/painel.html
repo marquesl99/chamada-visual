@@ -7,26 +7,34 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
-        html, body.panel-page {
-            height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; box-sizing: border-box;
-        }
-        .display-container {
-            height: 100%; width: 100%; padding: 15px; box-sizing: border-box;
-        }
+        /* 1. Mantém a estrutura da grade que já está funcionando */
+        html, body.panel-page { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; box-sizing: border-box; }
+        .display-container { height: 100%; width: 100%; padding: 15px; box-sizing: border-box; }
         #student-grid {
             display: grid; height: 100%; width: 100%; gap: 15px;
             grid-template-columns: repeat(5, 1fr) !important;
-            /* Ajuste 1: Cálculo mais preciso da altura das fileiras */
-            grid-template-rows: repeat(2, calc((100% - 45px) / 2)) !important;
+            grid-template-rows: repeat(2, calc((100% - 15px) / 2)) !important;
         }
 
-        /* Ajuste 2: Organiza os elementos DENTRO do card */
+        /* 2. Ajustes finos para o CONTEÚDO DENTRO de cada card */
         .student-card {
-            justify-content: space-evenly !important; /* Distribui o espaço em vez de centralizar */
+            padding: 1vh !important;
+            justify-content: center !important;
         }
+        /* Força a foto a ser um CÍRCULO PERFEITO e responsivo */
         .student-photo-large {
-            width: 55% !important; /* Foto um pouco menor para dar espaço ao texto */
-            margin-bottom: 5px !important; /* Margem menor */
+            width: 13vh !important;   /* Largura baseada na altura da tela */
+            height: 13vh !important;  /* Altura IDÊNTICA à largura para formar um círculo */
+            max-width: none !important; /* Remove o limite de 150px */
+            flex-shrink: 1 !important; /* Permite que a foto encolha se necessário */
+        }
+        /* Ajusta o tamanho da fonte para ser proporcional à tela */
+        .student-card-name {
+            font-size: 2.1vh !important;
+            line-height: 1.1 !important;
+        }
+        .student-card-class {
+            font-size: 1.8vh !important;
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
