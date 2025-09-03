@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Chamada - Colégio Carbonell</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        #student-grid {
+            grid-template-columns: repeat(5, 1fr) !important;
+            grid-template-rows: repeat(2, 1fr) !important;
+        }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap" rel="stylesheet">
@@ -95,7 +102,6 @@
         import { db } from '/static/firebase-config.js';
         import { collection, query, orderBy, onSnapshot, getDocs, deleteDoc, doc, where, Timestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-        // ALTERAÇÃO: Ajustado para 10 para corresponder à grade 5x2
         const MAX_DISPLAY_COUNT = 10;
         const TIMEOUT_MINUTES = 10;
         
@@ -179,15 +185,11 @@
 
         let wakeLock = null;
 
-        // Função para solicitar o bloqueio de ativação da tela
         const requestWakeLock = async () => {
-            // Verifica se o navegador suporta a API
             if ('wakeLock' in navigator) {
                 try {
                     wakeLock = await navigator.wakeLock.request('screen');
                     console.log('Wake Lock ativado. A tela não será desligada.');
-
-                    // Adiciona um listener para quando o bloqueio for liberado (ex: pelo sistema)
                     wakeLock.addEventListener('release', () => {
                         console.log('Wake Lock foi liberado pelo sistema.');
                     });
@@ -200,14 +202,11 @@
             }
         };
 
-        // Adiciona o evento de clique ao botão
         activateBtn.addEventListener('click', () => {
-            startMonitoring();   // Inicia o monitoramento
-            requestWakeLock();   // Solicita para manter a tela ativa
+            startMonitoring();
+            requestWakeLock();
         });
 
-        // Ouve mudanças na visibilidade da página para reativar o bloqueio
-        // se o usuário minimizar/maximizar a janela.
         document.addEventListener('visibilitychange', async () => {
             if (wakeLock !== null && document.visibilityState === 'visible') {
                 await requestWakeLock();
