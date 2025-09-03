@@ -7,29 +7,30 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
-        /* CSS de suporte para o cálculo via JavaScript */
+        /* 1. Resets básicos para garantir que a página ocupe toda a tela */
         html, body.panel-page {
             height: 100%;
+            width: 100%;
             margin: 0;
             padding: 0;
             overflow: hidden;
+            box-sizing: border-box;
         }
-        body.panel-page {
-            display: flex;
-            flex-direction: column;
-        }
-        body.panel-page .display-container {
-            flex-grow: 1;
+        /* 2. O container principal deve ter o tamanho total, considerando o padding */
+        .display-container {
+            height: 100%;
+            width: 100%;
             padding: 15px;
             box-sizing: border-box;
-            display: flex;
         }
+        /* 3. A grade deve ocupar 100% do container e ter o layout exato */
         #student-grid {
-            flex-grow: 1;
-            /* Deixamos o CSS cuidar apenas das colunas */
+            display: grid;
+            height: 100%;
+            width: 100%;
+            gap: 15px;
             grid-template-columns: repeat(5, 1fr) !important;
-            /* As fileiras serão controladas pelo JS */
-            grid-auto-rows: min-content; /* Previne que o CSS interfira na altura */
+            grid-template-rows: repeat(2, calc((100% - 15px) / 2)) !important;
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,45 +76,10 @@
         const activationOverlay = document.getElementById('activation-overlay');
         const activateBtn = document.getElementById('activate-btn');
 
-        // ===================================================================
-        // INÍCIO DA NOVA LÓGICA JAVASCRIPT
-        // ===================================================================
-        
-        /**
-         * Calcula e aplica a altura correta para os cards da grade.
-         * Isso força o layout a ter 2 fileiras de altura igual.
-         */
-        function resizeGridItems() {
-            // Espera um instante para o navegador renderizar o layout em tela cheia
-            setTimeout(() => {
-                const grid = document.getElementById('student-grid');
-                if (!grid) return;
-
-                const gridHeight = grid.offsetHeight; // Altura total da grade em pixels
-                const gridGap = 15; // O gap definido no style.css
-                
-                // Calcula a altura exata que cada card deve ter
-                const cardHeight = (gridHeight - gridGap) / 2;
-
-                const cards = grid.querySelectorAll('.student-card');
-                cards.forEach(card => {
-                    // Aplica a altura calculada diretamente no estilo do elemento
-                    card.style.height = `${cardHeight}px`;
-                });
-            }, 100); // Um pequeno delay de 100ms
-        }
-        
-        // ===================================================================
-        // FIM DA NOVA LÓGICA JAVASCRIPT
-        // ===================================================================
-
         function startMonitoring() {
             activationOverlay.style.display = 'none';
             const emptyStateHTML = `<div class="empty-state"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Colégio Carbonell" class="logo-empty"><h2>Aguardando chamada...</h2></div>`;
             studentGrid.innerHTML = emptyStateHTML;
-            
-            // Chama a função de redimensionamento assim que o monitoramento começa
-            resizeGridItems();
             
             const q = query(chamadosCollection, orderBy("timestamp", "desc"));
             onSnapshot(q, (querySnapshot) => {
@@ -143,9 +109,6 @@
                         }
                     }
                 });
-                
-                // Chama a função de redimensionamento toda vez que há uma mudança na grade
-                resizeGridItems();
             });
         }
 
@@ -162,11 +125,12 @@
         }
 
         let wakeLock = null;
+
         const requestWakeLock = async () => {
             if ('wakeLock' in navigator) {
                 try {
                     wakeLock = await navigator.wakeLock.request('screen');
-                    console.log('Wake Lock ativado.');
+                    console.log('Wake Lock ativado. A tela não será desligada.');
                     wakeLock.addEventListener('release', () => { console.log('Wake Lock foi liberado.'); });
                 } catch (err) { console.error(`${err.name}, ${err.message}`); }
             } else { console.warn('API Wake Lock não é suportada.'); }
