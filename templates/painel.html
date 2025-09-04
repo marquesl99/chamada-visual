@@ -6,6 +6,37 @@
     <title>Painel de Chamada - Colégio Carbonell</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
+    <style>
+        /* 1. Mantém a estrutura da grade que já está funcionando */
+        html, body.panel-page { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; box-sizing: border-box; }
+        .display-container { height: 100%; width: 100%; padding: 15px; box-sizing: border-box; }
+        #student-grid {
+            display: grid; height: 100%; width: 100%; gap: 15px;
+            grid-template-columns: repeat(5, 1fr) !important;
+            grid-template-rows: repeat(2, calc((100% - 15px) / 2)) !important;
+        }
+
+        /* 2. Ajustes finos para o CONTEÚDO DENTRO de cada card (Novos valores) */
+        .student-card {
+            padding: 1vh !important;
+            justify-content: center !important;
+        }
+        /* Aumenta um pouco a foto, mantendo-a um CÍRCULO PERFEITO */
+        .student-photo-large {
+            width: 14vh !important;   /* Aumentado de 13vh para 14vh */
+            height: 14vh !important;  /* Aumentado de 13vh para 14vh */
+            max-width: none !important;
+            flex-shrink: 1 !important;
+        }
+        /* Aumenta um pouco o tamanho da fonte */
+        .student-card-name {
+            font-size: 2.3vh !important; /* Aumentado de 2.1vh para 2.3vh */
+            line-height: 1.1 !important;
+        }
+        .student-card-class {
+            font-size: 2vh !important;   /* Aumentado de 1.8vh para 2vh */
+        }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap" rel="stylesheet">
