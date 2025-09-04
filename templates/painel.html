@@ -7,36 +7,51 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
-        /* 1. Mantém a estrutura da grade que já está funcionando */
+        /* 1. ESTRUTURA DA GRADE (COM MARGENS OTIMIZADAS) */
         html, body.panel-page { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; box-sizing: border-box; }
-        .display-container { height: 100%; width: 100%; padding: 15px; box-sizing: border-box; }
+        
+        .display-container { 
+            height: 100%; 
+            width: 100%; 
+            /* Reduzido o padding para aproximar a grade das bordas */
+            padding: 10px; 
+            box-sizing: border-box; 
+        }
+        
         #student-grid {
-            display: grid; height: 100%; width: 100%; gap: 15px;
+            display: grid; 
+            height: 100%; 
+            width: 100%; 
+            /* Reduzido o gap para aproximar os cards entre si */
+            gap: 10px;
             grid-template-columns: repeat(5, 1fr) !important;
-            grid-template-rows: repeat(2, calc((100% - 15px) / 2)) !important;
+            /* Recalcula a altura das linhas considerando o novo gap */
+            grid-template-rows: repeat(2, calc((100% - 10px) / 2)) !important;
         }
 
-        /* 2. Ajustes finos para o CONTEÚDO DENTRO de cada card */
+        /* 2. CONTEÚDO DENTRO DO CARD (VERSÃO FINAL AMPLIADA) */
         .student-card {
             padding: 1vh !important;
             justify-content: center !important;
         }
-        /* Força a foto a ser um CÍRCULO PERFEITO e responsivo */
+        
         .student-photo-large {
-            width: 17vh !important;   /* Largura baseada na altura da tela */
-            height: 17vh !important;  /* Altura IDÊNTICA à largura para formar um círculo */
-            max-width: none !important; /* Remove o limite de 150px */
-            margin-bottom: 0.5vh !important; /* Reduz a margem inferior da foto */
-            flex-shrink: 1 !important; /* Permite que a foto encolha se necessário */
+            /* Voltamos a um tamanho grande para a foto, pois agora temos espaço */
+            width: 18vh !important;   
+            height: 18vh !important;  
+            margin-bottom: 0.5vh !important;
+            max-width: none !important;
+            flex-shrink: 1 !important;
         }
-        /* Ajusta o tamanho da fonte para ser proporcional à tela */
+
         .student-card-name {
-            font-size: 2.7vh !important; /* Aumentado de 2.1vh para 2.8vh */
-            line-height: 1.15 !important; /* Leve ajuste para espaçamento */
-            margin-top: 0.5vh; /* Adiciona um pequeno espaço acima do nome */
+            /* Usamos a fonte maior novamente */
+            font-size: 2.8vh !important; 
+            line-height: 1.15 !important;
         }
+        
         .student-card-class {
-            font-size: 1.8vh !important;
+            font-size: 2.2vh !important;
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -166,5 +181,3 @@
     </script>
 </body>
 </html>
-
-
