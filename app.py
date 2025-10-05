@@ -42,6 +42,19 @@ oauth.register(
 
 # --- 2. DECORADOR DE AUTENTICAÇÃO ---
 def login_obrigatorio(f):
+    """
+    Decorator that requires login for a route.
+
+    This decorator checks if a user is logged in by verifying the presence of
+    the 'user' key in the session. If the user is not logged in, they are
+    redirected to the login page.
+
+    Args:
+        f (function): The function to be decorated.
+
+    Returns:
+        function: The decorated function.
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user' not in session:
@@ -53,6 +66,16 @@ def login_obrigatorio(f):
 api_token = None
 token_expires_at = 0
 def get_sophia_token():
+    """
+    Retrieves an authentication token for the Sophia API.
+
+    This function checks if a valid token already exists and is not expired.
+    If not, it requests a new token from the Sophia API using the configured
+    credentials.
+
+    Returns:
+        str: The authentication token, or None if an error occurs.
+    """
     global api_token, token_expires_at
     if not API_BASE_URL:
         print("AVISO: Variáveis da API Sophia não configuradas.")
@@ -73,6 +96,19 @@ def get_sophia_token():
         return None
 
 def fetch_photo(aluno_id, headers):
+    """
+    Fetches a student's photo from the Sophia API.
+
+    Args:
+        aluno_id (int): The ID of the student.
+        headers (dict): The headers to be sent with the request, including the
+                        authentication token.
+
+    Returns:
+        tuple: A tuple containing the student's ID and the base64-encoded
+               photo, or (aluno_id, None) if the photo is not found or an
+               error occurs.
+    """
     try:
         photo_url = f"{API_BASE_URL}/api/v1/alunos/{aluno_id}/Fotos/FotosReduzida"
         response_foto = requests.get(photo_url, headers=headers, timeout=5)
@@ -86,6 +122,15 @@ def fetch_photo(aluno_id, headers):
     return aluno_id, None
 
 def normalize_text(text):
+    """
+    Normalizes a string by converting it to lowercase and removing diacritics.
+
+    Args:
+        text (str): The string to be normalized.
+
+    Returns:
+        str: The normalized string.
+    """
     if not text:
         return ""
     text = str(text).lower()
@@ -95,10 +140,27 @@ def normalize_text(text):
 @app.route('/api/buscar-aluno', methods=['GET'])
 @login_obrigatorio
 def buscar_aluno():
+    """
+    API endpoint to search for students.
+
+    This endpoint requires login and searches for students based on a partial
+    name and an optional group filter. It fetches data from the Sophia API,
+    filters the results, and returns a JSON list of students with their
+    photos.
+
+    Query Parameters:
+        parteNome (str): The partial name of the student to search for.
+        grupo (str): The group to filter by (e.g., 'EF', 'EM'). Defaults to
+                     'todos'.
+
+    Returns:
+        JSON: A JSON response containing a list of students or an error
+              message.
+    """
     token = get_sophia_token()
     if not token:
         return jsonify({"erro": "Não foi possível autenticar com a API Sophia."}), 500
-    
+
     parte_nome = request.args.get('parteNome', '').strip()
     grupo_filtro = request.args.get('grupo', 'todos').upper()
 
@@ -109,12 +171,12 @@ def buscar_aluno():
     headers = {'token': token, 'Accept': 'application/json'}
     params = {"Nome": primeiro_nome}
     search_url = f"{API_BASE_URL}/api/v1/alunos"
-    
+
     try:
         response_alunos = requests.get(search_url, headers=headers, params=params)
         response_alunos.raise_for_status()
         lista_alunos_api = response_alunos.json()
-        
+
         alunos_filtrados = []
         termos_busca_normalizados = normalize_text(parte_nome).split()
 
@@ -124,7 +186,7 @@ def buscar_aluno():
                 continue
             if grupo_filtro != 'TODOS' and not turma_aluno.upper().startswith(grupo_filtro):
                 continue
-            
+
             nome_completo_normalizado = normalize_text(aluno.get("nome"))
             if all(termo in nome_completo_normalizado for termo in termos_busca_normalizados):
                 alunos_filtrados.append(aluno)
@@ -150,7 +212,7 @@ def buscar_aluno():
         for aluno_id, aluno_data in alunos_map.items():
             aluno_data['fotoUrl'] = fotos.get(aluno_id)
             alunos_formatados.append(aluno_data)
-            
+
         return jsonify(alunos_formatados)
     except requests.exceptions.RequestException as e:
         print(f"Erro ao buscar alunos na API Sophia: {e}")
@@ -159,34 +221,70 @@ def buscar_aluno():
 # --- 5. ROTAS DE AUTENTICAÇÃO E NAVEGAÇÃO ---
 @app.route('/')
 def index():
+    """
+    Redirects to the terminal if the user is logged in, otherwise to the
+    login page.
+
+    Returns:
+        Response: A redirect to the terminal or login page.
+    """
     if 'user' in session:
         return redirect(url_for('terminal'))
     return redirect(url_for('login'))
 
 @app.route('/login')
 def login():
+    """
+    Renders the login page.
+
+    Returns:
+        Response: The rendered login page.
+    """
     return render_template('login.html')
 
 @app.route('/entrar-google')
 def login_google():
+    """
+    Initiates the Google OAuth login process.
+
+    Returns:
+        Response: A redirect to the Google authorization page.
+    """
     redirect_uri = url_for('google_auth', _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
 
 @app.route('/google-auth')
 def google_auth():
+    """
+    Handles the Google OAuth callback.
+
+    This route receives the authorization token from Google, fetches the
+    user's information, and checks if the user's email domain is allowed.
+    If the user is authorized, their information is stored in the session.
+
+    Returns:
+        Response: A redirect to the terminal page on success, or back to the
+                  login page on failure.
+    """
     token = oauth.google.authorize_access_token()
     user_info = token.get('userinfo')
-    
+
     if not user_info or not user_info.get('email', '').endswith('@colegiocarbonell.com.br'):
         flash('Acesso negado. Utilize uma conta do Colégio Carbonell.', 'danger')
         return redirect(url_for('login'))
-    
+
     # Simplesmente salva na sessão, sem banco de dados
     session['user'] = {'email': user_info['email'], 'name': user_info['name']}
     return redirect(url_for('terminal'))
 
 @app.route('/logout')
 def logout():
+    """
+    Logs the user out by clearing the session.
+
+    Returns:
+        Response: A redirect to the login page.
+    """
     session.pop('user', None)
     return redirect(url_for('login'))
 
@@ -194,10 +292,24 @@ def logout():
 @app.route('/terminal')
 @login_obrigatorio
 def terminal():
+    """
+    Renders the main terminal page.
+
+    This route requires the user to be logged in.
+
+    Returns:
+        Response: The rendered terminal page.
+    """
     return render_template('terminal.html')
 
 @app.route('/painel')
 def painel():
+    """
+    Renders the panel page.
+
+    Returns:
+        Response: The rendered panel page.
+    """
     return render_template('painel.html')
 
 # A seção if __name__ == '__main__' foi removida pois o Gunicorn irá gerenciar o servidor.
