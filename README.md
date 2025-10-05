@@ -1,101 +1,96 @@
-# Visual Roll Call - Colégio Carbonell
+# Chamada Visual - Colégio Carbonell
 
-The Visual Roll Call system is a web application designed to streamline the student calling process at Colégio Carbonell. The tool allows authorized users to search for students in real-time and send them to a display panel, which is instantly updated for everyone viewing it.
+O sistema de Chamada Visual é uma aplicação web desenvolvida para otimizar o processo de chamada de alunos no Colégio Carbonell. A ferramenta permite que usuários autorizados busquem alunos em tempo real e os enviem para um painel de exibição.
 
-## 🚀 Key Features
+## 🚀 Funcionalidades Principais
 
-*   **Secure Authentication:** Exclusive login for users with Google accounts from the `@colegiocarbonell.com.br` domain.
-*   **Student Search:** Integrates with the Sophia management system API to search for students by name.
-*   **Smart Filters:** Searches can be filtered by educational stage.
-*   **Calling Terminal:** A simple interface where the user searches for a student and "calls" them with a single click.
-*   **Real-Time Dashboard:** A display screen (ideal for TVs and monitors) that shows the called students. The panel updates for all connected clients in real-time.
-*   **Voice Search:** The terminal has a button to perform student searches using the microphone.
+*   **Autenticação Segura:** Login exclusivo para usuários com contas Google do domínio `@colegiocarbonell.com.br`.
+*   **Busca de Alunos:** Integração com a API do sistema de gestão Sophia para buscar alunos pelo nome.
+*   **Filtros Inteligentes:** As buscas podem ser filtradas por segmento de ensino.
+*   **Terminal de Chamada:** Uma interface simples onde o usuário busca por um aluno.
+*   **Painel de Exibição:** Uma tela de exibição (ideal para TVs e monitores) que mostra os alunos chamados.
 
-## 🛠️ Tech Stack
+## 🛠️ Tecnologias Utilizadas
 
-This project is built with a combination of backend, frontend, and cloud service technologies:
+Este projeto foi construído com uma combinação de tecnologias de backend e frontend:
 
 ### Backend:
 
-*   **Python:** The primary programming language.
-*   **Flask:** A web microframework for building the application and API.
-*   **Gunicorn:** A WSGI server to run the application in production.
-*   **Authlib:** For integration with Google's authentication system (OAuth).
+*   **Python:** A principal linguagem de programação.
+*   **Flask:** Um microframework web para construir a aplicação e a API.
+*   **Gunicorn:** Um servidor WSGI para executar a aplicação em produção.
+*   **Authlib:** Para integração com o sistema de autenticação do Google (OAuth).
 
 ### Frontend:
 
-*   **HTML5 / CSS3:** For page structure and styling.
-*   **JavaScript (ES6 Modules):** For client-side interactivity, such as searches, click events, and communication.
+*   **HTML5 / CSS3:** Para a estrutura e estilização das páginas.
+*   **JavaScript (ES6 Modules):** Para interatividade no lado do cliente, como buscas e eventos de clique.
 
-### Database and Real-Time Sync:
+## ⚙️ Configuração do Projeto
 
-*   **Google Firebase (Firestore):** Used as a real-time NoSQL database to synchronize called students between the terminal and the display panel. *Note: The current `app.py` is a simplified version and does not contain the Firebase integration code, but it is a core part of the deployed application.*
+Siga estes passos para configurar o projeto para desenvolvimento local.
 
-## ⚙️ Project Setup
-
-Follow these steps to set up the project for local development.
-
-### 1. Prerequisites
+### 1. Pré-requisitos
 
 *   Python 3.7+
-*   pip package manager
+*   Gerenciador de pacotes `pip`
 
-### 2. Clone the Repository
+### 2. Clonar o Repositório
 
 ```bash
-git clone <repository-url>
-cd <repository-directory>
+git clone <url-do-repositorio>
+cd <diretorio-do-repositorio>
 ```
 
-### 3. Set Up a Virtual Environment
+### 3. Configurar um Ambiente Virtual
 
-It's recommended to use a virtual environment to manage project dependencies.
+É recomendado usar um ambiente virtual para gerenciar as dependências do projeto.
 
 ```bash
-# Create a virtual environment
+# Crie um ambiente virtual
 python -m venv venv
 
-# Activate it
-# On Windows:
+# Ative o ambiente
+# No Windows:
 # venv\Scripts\activate
-# On macOS/Linux:
+# No macOS/Linux:
 source venv/bin/activate
 ```
 
-### 4. Install Dependencies
+### 4. Instalar as Dependências
 
-Install all required packages using the `requirements.txt` file.
+Instale todos os pacotes necessários usando o arquivo `requirements.txt`.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 5. Configure Environment Variables
+### 5. Configurar Variáveis de Ambiente
 
-Create a `.env` file in the root directory of the project. This file will store sensitive credentials and configuration settings. Add the following variables:
+Crie um arquivo `.env` na raiz do projeto. Este arquivo armazenará credenciais e configurações sensíveis. Adicione as seguintes variáveis:
 
 ```
-# Flask secret key for session management
-SECRET_KEY='your_strong_secret_key_here'
+# Chave secreta do Flask para gerenciamento de sessão
+SECRET_KEY='sua_chave_secreta_forte_aqui'
 
-# Google OAuth Credentials
-GOOGLE_CLIENT_ID='your_google_client_id'
-GOOGLE_CLIENT_SECRET='your_google_client_secret'
+# Credenciais do Google OAuth
+GOOGLE_CLIENT_ID='seu_id_de_cliente_google'
+GOOGLE_CLIENT_SECRET='seu_segredo_de_cliente_google'
 
-# Sophia API Credentials
-SOPHIA_TENANT='your_sophia_tenant'
-SOPHIA_USER='your_sophia_user'
-SOPHIA_PASSWORD='your_sophia_password'
-SOPHIA_API_HOSTNAME='your_sophia_api_hostname'
+# Credenciais da API Sophia
+SOPHIA_TENANT='seu_tenant_sophia'
+SOPHIA_USER='seu_usuario_sophia'
+SOPHIA_PASSWORD='sua_senha_sophia'
+SOPHIA_API_HOSTNAME='seu_hostname_da_api_sophia'
 ```
 
-Replace the placeholder values with your actual credentials.
+Substitua os valores de exemplo por suas credenciais reais.
 
-## 🏃‍♀️ Running the Application
+## 🏃‍♀️ Executando a Aplicação
 
-### Development Mode
+### Modo de Desenvolvimento
 
-For development, you can use Flask's built-in server:
+Para desenvolvimento, você pode usar o servidor embutido do Flask:
 
 ```bash
 export FLASK_APP=app.py
@@ -103,23 +98,22 @@ export FLASK_ENV=development
 flask run
 ```
 
-The application will be available at `http://127.0.0.1:5000`.
+A aplicação estará disponível em `http://127.0.0.1:5000`.
 
-### Production Mode
+### Modo de Produção
 
-For production deployments, it is recommended to use a WSGI server like Gunicorn:
+Para implantações em produção, é recomendado usar um servidor WSGI como o Gunicorn:
 
 ```bash
 gunicorn --bind 0.0.0.0:8080 app:app
 ```
 
-## 💻 How to Use
+## 💻 Como Usar
 
-1.  **Login:** Access the application's URL and log in with an authorized `@colegiocarbonell.com.br` Google account.
-2.  **Terminal:** After logging in, you will be directed to the **Terminal** page.
-3.  **Search:** Use the search bar to find students by name. You can also apply filters for different educational stages.
-4.  **Call Student:** Click on a student's name in the search results to "call" them.
-5.  **Dashboard:** The called student will instantly appear on the **Dashboard** page. This page is designed to be displayed on a public screen (like a TV) and updates in real-time for all viewers.
+1.  **Login:** Acesse a URL da aplicação e faça login com uma conta Google autorizada do domínio `@colegiocarbonell.com.br`.
+2.  **Terminal:** Após o login, você será direcionado para a página do **Terminal**.
+3.  **Busca:** Utilize a barra de busca para encontrar alunos pelo nome. Você também pode aplicar filtros para diferentes segmentos.
+4.  **Painel:** A página **Painel** é projetada para ser exibida em uma tela pública (como uma TV) para mostrar os alunos chamados.
 
 ---
-*Original Developer: Thiago Marques*
+*Desenvolvedor Original: Thiago Marques*
