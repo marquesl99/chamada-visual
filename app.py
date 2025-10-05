@@ -1,4 +1,18 @@
-# app.py - Versão simplificada para Google Cloud App Engine
+# -*- coding: utf-8 -*-
+"""Aplicação web Flask para o sistema de Chamada Visual do Colégio Carbonell.
+
+Este aplicativo fornece uma interface para buscar alunos em tempo real a partir
+da API do sistema de gestão Sophia e exibi-los em um painel. A autenticação é
+realizada via Google OAuth, restrita a usuários do domínio da escola.
+
+Principais funcionalidades:
+- Autenticação segura com contas Google do Colégio Carbonell.
+- Busca de alunos na API Sophia com filtro por nome e grupo.
+- Exibição de fotos dos alunos.
+- Interface de terminal para realizar as chamadas.
+- Painel de exibição que pode ser atualizado em tempo real (funcionalidade
+  completa depende de integrações adicionais como Firebase).
+"""
 
 import os
 import requests
@@ -16,6 +30,7 @@ import unicodedata
 # --- 1. CONFIGURAÇÕES E INICIALIZAÇÕES ---
 load_dotenv() # Carrega variáveis do .env para testes locais
 app = Flask(__name__)
+"""Instância principal da aplicação Flask."""
 
 # Configurações do App e Chaves (lidas do ambiente)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -42,18 +57,17 @@ oauth.register(
 
 # --- 2. DECORADOR DE AUTENTICAÇÃO ---
 def login_obrigatorio(f):
-    """
-    Decorator that requires login for a route.
+    """Garante que o usuário esteja logado para acessar uma rota.
 
-    This decorator checks if a user is logged in by verifying the presence of
-    the 'user' key in the session. If the user is not logged in, they are
-    redirected to the login page.
+    Este decorador verifica se a chave 'user' está presente na sessão.
+    Caso o usuário não esteja logado, ele é redirecionado para a página de login.
 
     Args:
-        f (function): The function to be decorated.
+        f (function): A função de rota que será protegida.
 
     Returns:
-        function: The decorated function.
+        function: A função decorada, que executa a verificação de login antes
+                  de chamar a função original.
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -66,15 +80,16 @@ def login_obrigatorio(f):
 api_token = None
 token_expires_at = 0
 def get_sophia_token():
-    """
-    Retrieves an authentication token for the Sophia API.
+    """Obtém um token de autenticação para a API Sophia.
 
-    This function checks if a valid token already exists and is not expired.
-    If not, it requests a new token from the Sophia API using the configured
-    credentials.
+    Verifica se um token válido e não expirado já existe. Caso contrário,
+    solicita um novo token à API Sophia usando as credenciais configuradas.
+    O token é armazenado globalmente para ser reutilizado em chamadas futuras.
 
     Returns:
-        str: The authentication token, or None if an error occurs.
+        str: O token de autenticação.
+        None: Se ocorrer um erro na obtenção do token ou se as variáveis
+              de ambiente da API não estiverem configuradas.
     """
     global api_token, token_expires_at
     if not API_BASE_URL:
@@ -88,7 +103,7 @@ def get_sophia_token():
         response = requests.post(auth_url, json=auth_data, timeout=10)
         response.raise_for_status()
         api_token = response.text.strip()
-        token_expires_at = time.time() + (29 * 60)
+        token_expires_at = time.time() + (29 * 60) # Expira em 29 minutos
         print("Novo token da API Sophia obtido com sucesso.")
         return api_token
     except requests.exceptions.RequestException as e:
@@ -96,18 +111,17 @@ def get_sophia_token():
         return None
 
 def fetch_photo(aluno_id, headers):
-    """
-    Fetches a student's photo from the Sophia API.
+    """Busca a foto de um aluno na API Sophia.
 
     Args:
-        aluno_id (int): The ID of the student.
-        headers (dict): The headers to be sent with the request, including the
-                        authentication token.
+        aluno_id (int): O código de identificação do aluno no sistema Sophia.
+        headers (dict): Os cabeçalhos da requisição, incluindo o token de
+                        autenticação da API.
 
     Returns:
-        tuple: A tuple containing the student's ID and the base64-encoded
-               photo, or (aluno_id, None) if the photo is not found or an
-               error occurs.
+        tuple: Uma tupla contendo o ID do aluno e a foto em formato base64.
+               Retorna (aluno_id, None) se a foto não for encontrada ou se
+               ocorrer um erro na requisição.
     """
     try:
         photo_url = f"{API_BASE_URL}/api/v1/alunos/{aluno_id}/Fotos/FotosReduzida"
@@ -122,14 +136,15 @@ def fetch_photo(aluno_id, headers):
     return aluno_id, None
 
 def normalize_text(text):
-    """
-    Normalizes a string by converting it to lowercase and removing diacritics.
+    """Normaliza uma string, removendo acentos e convertendo para minúsculas.
+
+    Útil para comparações de texto insensíveis a maiúsculas/minúsculas e acentos.
 
     Args:
-        text (str): The string to be normalized.
+        text (str): A string a ser normalizada.
 
     Returns:
-        str: The normalized string.
+        str: A string normalizada. Retorna uma string vazia se a entrada for nula.
     """
     if not text:
         return ""
@@ -140,22 +155,22 @@ def normalize_text(text):
 @app.route('/api/buscar-aluno', methods=['GET'])
 @login_obrigatorio
 def buscar_aluno():
-    """
-    API endpoint to search for students.
+    """Endpoint da API para buscar alunos no sistema Sophia.
 
-    This endpoint requires login and searches for students based on a partial
-    name and an optional group filter. It fetches data from the Sophia API,
-    filters the results, and returns a JSON list of students with their
-    photos.
+    Requer que o usuário esteja logado. A busca é feita com base em um nome
+    parcial e um filtro de grupo opcional. Os resultados são enriquecidos com
+    as fotos dos alunos e retornados como JSON.
 
     Query Parameters:
-        parteNome (str): The partial name of the student to search for.
-        grupo (str): The group to filter by (e.g., 'EF', 'EM'). Defaults to
-                     'todos'.
+        parteNome (str): O nome ou parte do nome do aluno para a busca.
+                         A busca só é realizada se o termo tiver 2 ou mais
+                         caracteres.
+        grupo (str): O grupo para filtrar os resultados (ex: 'EF', 'EM').
+                     O padrão é 'todos'.
 
     Returns:
-        JSON: A JSON response containing a list of students or an error
-              message.
+        Response: Uma resposta JSON contendo uma lista de alunos encontrados
+                  ou uma mensagem de erro com o código de status HTTP apropriado.
     """
     token = get_sophia_token()
     if not token:
@@ -221,12 +236,13 @@ def buscar_aluno():
 # --- 5. ROTAS DE AUTENTICAÇÃO E NAVEGAÇÃO ---
 @app.route('/')
 def index():
-    """
-    Redirects to the terminal if the user is logged in, otherwise to the
-    login page.
+    """Redireciona para a página principal da aplicação.
+
+    Se o usuário já estiver logado, redireciona para o terminal de chamada.
+    Caso contrário, redireciona para a página de login.
 
     Returns:
-        Response: A redirect to the terminal or login page.
+        Response: Um redirecionamento para a rota 'terminal' ou 'login'.
     """
     if 'user' in session:
         return redirect(url_for('terminal'))
@@ -234,37 +250,36 @@ def index():
 
 @app.route('/login')
 def login():
-    """
-    Renders the login page.
+    """Renderiza a página de login.
 
     Returns:
-        Response: The rendered login page.
+        Response: A página de login renderizada (template 'login.html').
     """
     return render_template('login.html')
 
 @app.route('/entrar-google')
 def login_google():
-    """
-    Initiates the Google OAuth login process.
+    """Inicia o fluxo de autenticação com o Google.
+
+    Redireciona o usuário para a página de autorização do Google.
 
     Returns:
-        Response: A redirect to the Google authorization page.
+        Response: Um redirecionamento para o serviço de autenticação do Google.
     """
     redirect_uri = url_for('google_auth', _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
 
 @app.route('/google-auth')
 def google_auth():
-    """
-    Handles the Google OAuth callback.
+    """Manipula o callback de autenticação do Google.
 
-    This route receives the authorization token from Google, fetches the
-    user's information, and checks if the user's email domain is allowed.
-    If the user is authorized, their information is stored in the session.
+    Recebe o token de autorização, busca as informações do usuário e verifica
+    se o domínio do e-mail pertence ao Colégio Carbonell. Se autorizado,
+    armazena as informações do usuário na sessão.
 
     Returns:
-        Response: A redirect to the terminal page on success, or back to the
-                  login page on failure.
+        Response: Redireciona para o terminal em caso de sucesso ou de volta
+                  para a página de login em caso de falha.
     """
     token = oauth.google.authorize_access_token()
     user_info = token.get('userinfo')
@@ -279,11 +294,13 @@ def google_auth():
 
 @app.route('/logout')
 def logout():
-    """
-    Logs the user out by clearing the session.
+    """Realiza o logout do usuário.
+
+    Remove as informações do usuário da sessão e o redireciona para a página
+    de login.
 
     Returns:
-        Response: A redirect to the login page.
+        Response: Um redirecionamento para a rota 'login'.
     """
     session.pop('user', None)
     return redirect(url_for('login'))
@@ -292,23 +309,23 @@ def logout():
 @app.route('/terminal')
 @login_obrigatorio
 def terminal():
-    """
-    Renders the main terminal page.
+    """Renderiza a página do terminal de chamada.
 
-    This route requires the user to be logged in.
+    Esta rota exige que o usuário esteja logado.
 
     Returns:
-        Response: The rendered terminal page.
+        Response: A página do terminal renderizada (template 'terminal.html').
     """
     return render_template('terminal.html')
 
 @app.route('/painel')
 def painel():
-    """
-    Renders the panel page.
+    """Renderiza a página do painel de exibição.
+
+    Esta página é pública e mostra os alunos que foram chamados.
 
     Returns:
-        Response: The rendered panel page.
+        Response: A página do painel renderizada (template 'painel.html').
     """
     return render_template('painel.html')
 
